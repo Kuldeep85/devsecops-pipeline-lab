@@ -1,5 +1,5 @@
 # BASELINE (deliberately weak): old base image, runs as root
-FROM node:14
+FROM node:16
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

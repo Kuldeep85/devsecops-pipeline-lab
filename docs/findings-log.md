@@ -8,8 +8,8 @@
 | 2c | SAST | Semgrep | Container would run as root: no `USER` in `app/Dockerfile` line 8 (`missing-user`) | Medium | A compromised process has root inside the container; use a non-root user (see `Dockerfile.hardened`) | Fix on Day 30 | Re-scan on Day 30 |
 | 3 | SCA | npm audit | lodash 4.17.15 (affected: <=4.17.23): command injection, prototype pollution, ReDoS; app uses `_.merge` in `/settings` | High | Attacker JSON merged into an object can alter app behaviour (prototype pollution); upgrade lodash | Fix on Day 30 | Re-scan on Day 30 |
 | 3b | SCA | npm audit | express 4.17.1 and its dependencies (body-parser, qs, path-to-regexp, cookie, send): DoS, ReDoS, XSS in `send` | High | Crafted requests can exhaust the service; upgrade express to a patched 4.x | Fix on Day 30 | Re-scan on Day 30 |
-| 4 | Container | Trivy | | | | | |
-| 5 | K8s manifest | Trivy config | | | | | |
+| 4 | Container | Trivy | demo-app:local (node:16 on Debian 10): 422 HIGH/CRITICAL before (405 HIGH, 17 CRITICAL; 376 in Debian OS packages, 46 in Node.js packages) | High | Old, end-of-life base image plus runs as root; rebuild on a current slim image as non-root | Fix on Day 30 | Re-scan on Day 30 |
+| 5 | K8s manifest | Trivy config | k8s/hardened/deployment.yaml: 0 misconfigurations (manifest already hardened) | None | Keep non-root, no privileged, drop all capabilities | n/a | Re-scan on Day 30 |
 | 6 | DAST | ZAP | | | | | |
 
 If this were a real key: rotate it first, meaning revoke it at the provider and issue a new one, because it's already public in the repo and its history. Then check the provider's logs for misuse, move the key to an environment variable or secret store, optionally rewrite git history, and prevent a repeat with a gitleaks gate in the pipeline plus .env in .gitignore.
