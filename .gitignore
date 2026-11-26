@@ -2,3 +2,4 @@ node_modules/
 .venv-semgrep/
 reports/*
 !reports/.gitkeep
+.env
