@@ -9,5 +9,7 @@
 | 5 | K8s manifest | Trivy config | | | | | |
 | 6 | DAST | ZAP | | | | | |
 
+If this were a real key: rotate it first, meaning revoke it at the provider and issue a new one, because it's already public in the repo and its history. Then check the provider's logs for misuse, move the key to an environment variable or secret store, optionally rewrite git history, and prevent a repeat with a gitleaks gate in the pipeline plus .env in .gitignore.
+
 ## Problems I hit and how I solved them
 (pipeline agent, permissions, tool versions, false positives... write these down — interviewers love them)
