@@ -8,3 +8,9 @@ rules:
     pattern-either:
       - pattern: db.query("..." + $X)
       - pattern: db.query("..." + $X + "...")
+  - id: demo-eval-usage
+    languages: [javascript]
+    severity: WARNING
+    message: >
+      eval() runs arbitrary code. Avoid it; use JSON.parse or a safe alternative.
+    pattern: eval(...)
