@@ -1,0 +1,67 @@
+# Azure DevOps YAML pipeline - security gates for the demo app.
+# Create it in Azure DevOps: Pipelines > New pipeline > GitHub (or Azure Repos) > Existing Azure Pipelines YAML file.
+trigger:
+  branches:
+    include: [main]
+pr:
+  branches:
+    include: [main]
+
+parameters:
+  - name: enforceGates
+    displayName: Fail the build when a scan finds issues?
+    type: boolean
+    default: false        # Phase 2: report-only.  Phase 4: change to true.
+
+pool:
+  vmImage: ubuntu-latest  # If you have no free hosted parallelism, use your self-hosted pool: name: <pool-name>
+
+variables:
+  IMAGE: demo-app:$(Build.BuildId)
+  ENFORCE: ${{ parameters.enforceGates }}
+
+stages:
+  - stage: Security
+    displayName: Security gates
+    jobs:
+      - job: scans
+        displayName: Secrets, SAST, SCA, container, DAST
+        steps:
+          - checkout: self
+            fetchDepth: 0   # full history so the secrets scan sees every commit
+
+          - task: NodeTool@0
+            displayName: Use Node 22
+            inputs:
+              versionSpec: '22.x'
+
+          - script: bash scripts/install-gitleaks.sh
+            displayName: Install gitleaks
+
+          - script: bash scripts/install-trivy.sh
+            displayName: Install trivy
+
+          - script: bash scripts/scan-secrets.sh
+            displayName: '1 - Secrets scan (gitleaks)'
+            condition: succeededOrFailed()
+
+          - script: bash scripts/scan-sast.sh
+            displayName: '2 - SAST (Semgrep)'
+            condition: succeededOrFailed()
+
+          - script: bash scripts/scan-sca.sh
+            displayName: '3 - SCA (npm audit)'
+            condition: succeededOrFailed()
+
+          - script: bash scripts/scan-container.sh
+            displayName: '4 - Container + Kubernetes manifest scan, SBOM (Trivy)'
+            condition: succeededOrFailed()
+
+          - script: bash scripts/scan-dast.sh
+            displayName: '5 - DAST (OWASP ZAP baseline)'
+            condition: succeededOrFailed()
+
+          - publish: reports
+            artifact: security-reports
+            displayName: Publish scan reports
+            condition: always()

@@ -1,0 +1,23 @@
+# BEFORE: deliberately insecure - use it to capture "before" scanner output
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  labels: { app: demo-app }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-app }
+  template:
+    metadata:
+      labels: { app: demo-app }
+    spec:
+      hostNetwork: true
+      containers:
+        - name: demo-app
+          image: demo-app:latest
+          ports:
+            - containerPort: 3000
+          securityContext:
+            privileged: true
+            runAsUser: 0

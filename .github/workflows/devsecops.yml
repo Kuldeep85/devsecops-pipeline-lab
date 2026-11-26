@@ -1,0 +1,47 @@
+# Same scans on GitHub Actions - gives recruiters a public, clickable pipeline history.
+name: devsecops
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  ENFORCE: 'false'          # Phase 2: report-only.  Phase 4: change to 'true'.
+  IMAGE: demo-app:${{ github.run_number }}
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: bash scripts/install-gitleaks.sh
+        name: Install gitleaks
+      - run: bash scripts/install-trivy.sh
+        name: Install trivy
+      - run: bash scripts/scan-secrets.sh
+        name: 1 - Secrets scan (gitleaks)
+        if: success() || failure()
+      - run: bash scripts/scan-sast.sh
+        name: 2 - SAST (Semgrep)
+        if: success() || failure()
+      - run: bash scripts/scan-sca.sh
+        name: 3 - SCA (npm audit)
+        if: success() || failure()
+      - run: bash scripts/scan-container.sh
+        name: 4 - Container + Kubernetes manifest scan, SBOM (Trivy)
+        if: success() || failure()
+      - run: bash scripts/scan-dast.sh
+        name: 5 - DAST (OWASP ZAP baseline)
+        if: success() || failure()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: reports

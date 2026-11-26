@@ -1,0 +1,10 @@
+rules:
+  - id: demo-sqli-string-concat
+    languages: [javascript]
+    severity: ERROR
+    message: >
+      SQL query built by string concatenation with request data.
+      Use a parameterised query instead (e.g. db.query("... WHERE name = ?", [name])).
+    pattern-either:
+      - pattern: db.query("..." + $X)
+      - pattern: db.query("..." + $X + "...")
